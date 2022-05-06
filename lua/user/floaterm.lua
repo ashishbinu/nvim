@@ -1,0 +1,12 @@
+vim.g.floaterm_shell = vim.o.shell
+vim.g.floaterm_title = "floaterm: $1/$2"
+vim.g.floaterm_wintype = "vsplit"
+vim.g.floaterm_width = 0.4
+vim.g.floaterm_height = 0.8
+vim.g.floaterm_position = "center"
+vim.g.floaterm_borderchars = "─│─│┌┐┘└"
+vim.g.floaterm_rootmarkers = { ".project", ".git", ".hg", ".svn", ".root" }
+vim.g.floaterm_opener = "split"
+vim.g.floaterm_autoclose = 0
+vim.g.floaterm_autohide = 1
+vim.g.floaterm_autoinsert = true

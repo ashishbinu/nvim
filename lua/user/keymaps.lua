@@ -1,14 +1,7 @@
-local opts = { noremap = true, silent = true }
-
-local term_opts = { silent = true }
-
--- Shorten function name
-local keymap = vim.api.nvim_set_keymap
-
 --Remap space as leader key
-keymap("", "<Space>", "<Nop>", opts)
+vim.keymap.set("n", "<Space>", "<Nop>")
 vim.g.mapleader = " "
-vim.g.maplocalleader = " "
+vim.g.maplocalleader = ","
 
 -- Modes
 --   normal_mode = "n",
@@ -18,52 +11,172 @@ vim.g.maplocalleader = " "
 --   term_mode = "t",
 --   command_mode = "c",
 
--- Normal --
--- Better window navigation
-keymap("n", "<C-h>", "<C-w>h", opts)
-keymap("n", "<C-j>", "<C-w>j", opts)
-keymap("n", "<C-k>", "<C-w>k", opts)
-keymap("n", "<C-l>", "<C-w>l", opts)
+--Remap for dealing with word wrap
+vim.keymap.set("n", "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
+vim.keymap.set("n", "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
--- Resize with arrows
-keymap("n", "<C-Up>", ":resize -2<CR>", opts)
-keymap("n", "<C-Down>", ":resize +2<CR>", opts)
-keymap("n", "<C-Left>", ":vertical resize -2<CR>", opts)
-keymap("n", "<C-Right>", ":vertical resize +2<CR>", opts)
+-- Better window navigation
+-- Splits navigation
+vim.cmd([[
+"Better Window Navigation
+function! WinMove(key)
+    let t:curwin = winnr()
+    exec "wincmd ".a:key
+    if (t:curwin == winnr())
+        if (match(a:key,'[jk]'))
+            wincmd v
+        else
+            wincmd s
+        endif
+        exec "wincmd ".a:key
+    endif
+endfunction
+
+nnoremap <silent> <C-h> <cmd>call WinMove('h')<CR>
+nnoremap <silent> <C-j> <cmd>call WinMove('j')<CR>
+nnoremap <silent> <C-k> <cmd>call WinMove('k')<CR>
+nnoremap <silent> <C-l> <cmd>call WinMove('l')<CR>
+
+augroup TerminalNavigation
+    autocmd!
+    autocmd TermOpen * tnoremap <buffer> <C-h> <cmd>wincmd h<CR>
+    autocmd TermOpen * tnoremap <buffer> <C-j> <cmd>wincmd j<CR>
+    autocmd TermOpen * tnoremap <buffer> <C-k> <cmd>wincmd k<CR>
+    autocmd TermOpen * tnoremap <buffer> <C-l> <cmd>wincmd l<CR>
+augroup END
+
+]])
+
+
+-- Resize windows
+vim.keymap.set("n", "<A-j>", "<cmd>resize -1<CR>")
+vim.keymap.set("n", "<A-k>", "<cmd>resize +1<CR>")
+vim.keymap.set("n", "<A-h>", "<cmd>vertical resize -1<CR>")
+vim.keymap.set("n", "<A-l>", "<cmd>vertical resize +1<CR>")
 
 -- Navigate buffers
-keymap("n", "<S-l>", ":bnext<CR>", opts)
-keymap("n", "<S-h>", ":bprevious<CR>", opts)
+-- keymap("n", "<Tab>", "<Cmd>bnext<CR>", opt)
+-- keymap("n", "<S-Tab>", "<Cmd>bprevious<CR>", opt)
+vim.keymap.set("n", "<TAB>", [[<Cmd>BufferLineCycleNext<CR>]])
+vim.keymap.set("n", "<S-TAB>", [[<Cmd>BufferLineCyclePrev<CR>]])
+
+-- Delete buffers
+vim.keymap.set("n", "<A-q>", function()
+    return require("bufdelete").bufdelete(0)
+end)
+
+-- Folds
+vim.keymap.set("n", ",f", "za")
+vim.keymap.set("n", "zi", "zizz")
+
+-- Lightspeed
+vim.keymap.set({ "n", "v" }, "<LocalLeader>s", "<Plug>Lightspeed_s")
+vim.keymap.set({ "n", "v" }, "<LocalLeader>a", "<Plug>Lightspeed_S")
 
 -- Move text up and down
-keymap("n", "<A-j>", "<Esc>:m .+1<CR>==gi", opts)
-keymap("n", "<A-k>", "<Esc>:m .-2<CR>==gi", opts)
+vim.keymap.set("n", "<A-j>", "<Esc>:m .+1<CR>==gi")
+vim.keymap.set("n", "<A-k>", "<Esc>:m .-2<CR>==gi")
 
--- Insert --
--- Press jk fast to enter
-keymap("i", "jk", "<ESC>", opts)
+-- copy whole file content
+vim.keymap.set("n", "<leader>y", [[<Cmd>%y+<CR>]])
 
--- Visual --
+-- Reselect last paste
+vim.keymap.set("n", "gp", "`[v`]")
+
+-- Better line navigation
+vim.keymap.set("n", "gh", "^")
+vim.keymap.set("v", "gh", "^")
+vim.keymap.set("n", "gl", "$")
+vim.keymap.set("v", "gl", "$")
+
+-- Better command line key
+vim.keymap.set("n", ";", ":")
+vim.keymap.set("n", ":", ";")
+vim.keymap.set("x", ";", ":")
+vim.keymap.set("x", ":", ";")
+
+-- Repeat last ex command
+vim.keymap.set({ "n", "v" }, "g.", "@:")
+
+-- -- Repeat last macro
+-- keymap('n','Q','@@',opt) -- Enabled in new version of neovim
+
+-- Remove highlight
+vim.keymap.set("n", "<Esc>", "<cmd>noh<cr>")
+
+-- Centering after command
+vim.keymap.set("n", "n", "nzzzv")
+vim.keymap.set("n", "N", "Nzzzv")
+vim.keymap.set("n", "<C-o>", "<C-o>zz")
+vim.keymap.set("n", "gi", "gi<C-o>zz")
+vim.keymap.set("n", "G", "Gzz")
+
+--Better Joining lines with J
+vim.keymap.set("n", "J", "mzJ`z")
+
+-- Quit
+vim.keymap.set("n", "<C-q>", [[<Cmd>quit!<CR>]])
+vim.keymap.set("i", "<C-q>", [[<Cmd>quit!<CR>]])
+
+-- Save
+vim.keymap.set("n", "<C-s>", [[<Cmd>write!<CR>]])
+vim.keymap.set("i", "<C-s>", [[<Cmd>write!<CR>]])
+
+-- Ctrl-Backspace to delete a word
+vim.keymap.set("i", "<C-H>", "<C-W>")
+vim.keymap.set("c", "<C-H>", "<C-W>")
+-- keymap("i"," "," <c-g>u")
+-- keymap("i",".",".<c-g>u")
+-- keymap("i","(","(<c-g>u")
+-- keymap("i",")",")<c-g>u")
+
+-- Command mode
+vim.keymap.set("c", "<C-j>", "<C-n>")
+vim.keymap.set("c", "<C-k>", "<C-p>")
+
 -- Stay in indent mode
-keymap("v", "<", "<gv", opts)
-keymap("v", ">", ">gv", opts)
+vim.keymap.set("v", "<", "<gv")
+vim.keymap.set("v", ">", ">gv")
 
 -- Move text up and down
-keymap("v", "<A-j>", ":m .+1<CR>==", opts)
-keymap("v", "<A-k>", ":m .-2<CR>==", opts)
-keymap("v", "p", '"_dP', opts)
+vim.keymap.set("v", "<A-j>", ":m .+1<CR>==")
+vim.keymap.set("v", "<A-k>", ":m .-2<CR>==")
+vim.keymap.set("v", "p", '"_dP')
 
--- Visual Block --
 -- Move text up and down
-keymap("x", "J", ":move '>+1<CR>gv-gv", opts)
-keymap("x", "K", ":move '<-2<CR>gv-gv", opts)
-keymap("x", "<A-j>", ":move '>+1<CR>gv-gv", opts)
-keymap("x", "<A-k>", ":move '<-2<CR>gv-gv", opts)
+vim.keymap.set("x", "J", ":move '>+1<CR>gv-gv")
+vim.keymap.set("x", "K", ":move '<-2<CR>gv-gv")
+vim.keymap.set("x", "<A-j>", ":move '>+1<CR>gv-gv")
+vim.keymap.set("x", "<A-k>", ":move '<-2<CR>gv-gv")
 
--- Terminal --
--- Better terminal navigation
--- keymap("t", "<C-h>", "<C-\\><C-N><C-w>h", term_opts)
--- keymap("t", "<C-j>", "<C-\\><C-N><C-w>j", term_opts)
--- keymap("t", "<C-k>", "<C-\\><C-N><C-w>k", term_opts)
--- keymap("t", "<C-l>", "<C-\\><C-N><C-w>l", term_opts)
+-- Horizontal Scrolling with mouse
+vim.keymap.set({ "n", "o", "v" }, "<S-ScrollWheelUp>", "<ScrollWheelLeft>", { remap = true })
+vim.keymap.set({ "n", "o", "v" }, "<S-2-ScrollWheelUp>", "<2-ScrollWheelLeft>", { remap = true })
+vim.keymap.set({ "n", "o", "v" }, "<S-3-ScrollWheelUp>", "<3-ScrollWheelLeft>", { remap = true })
+vim.keymap.set({ "n", "o", "v" }, "<S-4-ScrollWheelUp>", "<4-ScrollWheelLeft>", { remap = true })
+vim.keymap.set({ "n", "o", "v" }, "<S-ScrollWheelDown>", "<ScrollWheelRight>", { remap = true })
+vim.keymap.set({ "n", "o", "v" }, "<S-2-ScrollWheelDown>", "<2-ScrollWheelRight>", { remap = true })
+vim.keymap.set({ "n", "o", "v" }, "<S-3-ScrollWheelDown>", "<3-ScrollWheelRight>", { remap = true })
+vim.keymap.set({ "n", "o", "v" }, "<S-4-ScrollWheelDown>", "<4-ScrollWheelRight>", { remap = true })
 
+vim.keymap.set("n", "cmm", "<Plug>CommentaryLine", { remap = true })
+vim.keymap.set("o", "cm", "<Plug>Commentary", { remap = true })
+vim.keymap.set("n", "cm", "<Plug>Commentary", { remap = true })
+vim.keymap.set("x", "cm", "<Plug>Commentary", { remap = true })
+
+-- terminal
+-- Quit the terminal from insert mode
+vim.keymap.set("t", "<C-q>", "<C-><C-N><cmd>quit!<CR>", { silent = true })
+-- vim.cmd([[ tnoremap <Esc><Esc> <C-\><C-n>]])
+vim.keymap.set("t", "jk", "<C-><C-n>")
+
+
+vim.keymap.set("n", "<F1>", "<Cmd>FloatermNew<CR>", { silent = true })
+vim.keymap.set("n", "<F2>", "<Cmd>FloatermNext<CR>", { silent = true })
+vim.keymap.set("n", "<F3>", "<Cmd>FloatermPrev<CR>", { silent = true })
+vim.keymap.set("n", "<F4>", "<Cmd>FloatermToggle<CR>", { silent = true })
+
+vim.keymap.set("t", "<F1>", "<Cmd>FloatermNew<CR>", { silent = true })
+vim.keymap.set("t", "<F2>", "<Cmd>FloatermNext<CR>", { silent = true })
+vim.keymap.set("t", "<F3>", "<Cmd>FloatermPrev<CR>", { silent = true })
+vim.keymap.set("t", "<F4>", "<Cmd>FloatermToggle<CR>", { silent = true })
